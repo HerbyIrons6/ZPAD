@@ -1,0 +1,20 @@
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Віртуальне середовище
+venv/
+.venv/
+env/
+
+# Кеш Python
+__pycache__/
+*.pyc
+
+# Датасети та архіви
+vhi_data/
+power_data/
+*.zip
+*.csv
+*.txt
