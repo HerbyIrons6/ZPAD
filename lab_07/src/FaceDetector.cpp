@@ -2,8 +2,10 @@
 
 #include "FaceDetector.hpp"
 
-FaceDetector::FaceDetector(const std::string& prototxt,
-                           const std::string& model) {
+FaceDetector::FaceDetector(
+    const std::string& prototxt,
+    const std::string& model
+) {
 
     net = cv::dnn::readNetFromCaffe(
         prototxt,
@@ -27,11 +29,15 @@ FaceDetector::~FaceDetector() {
     }
 }
 
-void FaceDetector::updateFrame(const cv::Mat& frame) {
+void FaceDetector::updateFrame(
+    const cv::Mat& frame
+) {
 
     std::lock_guard<std::mutex> lock(mtx);
 
-    frame.copyTo(currentFrame);
+    // Полная независимая копия
+
+    currentFrame = frame.clone();
 
     hasNewFrame = true;
 }
@@ -62,7 +68,10 @@ void FaceDetector::detectionLoop() {
                 continue;
             }
 
-            currentFrame.copyTo(frameToProcess);
+            // Копируем локально
+
+            frameToProcess =
+                currentFrame.clone();
 
             hasNewFrame = false;
         }
@@ -132,10 +141,10 @@ void FaceDetector::detectionLoop() {
             detectedFaces = faces;
         }
 
-        // Демонстрация многопоточности
+        // НЕ 500мс
 
         std::this_thread::sleep_for(
-            std::chrono::milliseconds(500)
+            std::chrono::milliseconds(30)
         );
     }
 }

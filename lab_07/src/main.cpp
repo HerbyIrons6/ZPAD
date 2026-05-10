@@ -10,9 +10,9 @@
 
 int main() {
 
-    cv::VideoCapture cap(0);
+    // Используем V4L2 вместо GStreamer
+    cv::VideoCapture cap(0, cv::CAP_V4L2);
 
-    // Зменшуеємо затримку буфера
     cap.set(cv::CAP_PROP_BUFFERSIZE, 1);
 
     if (!cap.isOpened()) {
@@ -51,33 +51,35 @@ int main() {
 
     while (true) {
 
-        // більш стабільне зчитування камери
         if (!cap.read(frame)) {
             break;
         }
-
-        // КРИТИЧЕСКИ ВАЖНО ДЛЯ LINUX/V4L2
-        // создаём независимую копию кадра
-        frame = frame.clone();
 
         if (frame.empty()) {
             break;
         }
 
-        // СНАЧАЛА отправляем чистый кадр в нейронку
+        // ВАЖНО:
+        // создаём отдельную копию
+        // для второго потока
+
+        cv::Mat cleanFrame = frame.clone();
+
+        // Передаём ТОЛЬКО cleanFrame
 
         if (faceMode) {
-            detector.updateFrame(frame);
+            detector.updateFrame(cleanFrame);
         }
 
-        // ПОТОМ применяем фильтры
+        // Все эффекты применяем
+        // только к основному кадру
 
         frameProc.process(
             frame,
             keyProc.getCurrentMode()
         );
 
-        // Рисуем найденные лица
+        // Рисуем лица
 
         if (faceMode) {
 
@@ -107,7 +109,7 @@ int main() {
 
         cv::imshow(winName, frame);
 
-        int key = cv::waitKey(30);
+        int key = cv::waitKey(1);
 
         if (key == 27) {
             break;
