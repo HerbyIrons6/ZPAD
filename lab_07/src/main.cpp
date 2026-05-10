@@ -1,4 +1,5 @@
 // main.cpp
+
 #include <opencv2/opencv.hpp>
 
 #include "KeyProcessor.hpp"
@@ -8,12 +9,18 @@
 #include <iostream>
 
 int main() {
+
     cv::VideoCapture cap(0);
+
+    // Зменшуеємо затримку буфера
+    cap.set(cv::CAP_PROP_BUFFERSIZE, 1);
+
     if (!cap.isOpened()) {
 
         std::cerr
             << "Помилка: Не вдалося відкрити камеру!"
             << std::endl;
+
         return -1;
     }
 
@@ -44,14 +51,20 @@ int main() {
 
     while (true) {
 
-        cap >> frame;
+        // більш стабільне зчитування камери
+        if (!cap.read(frame)) {
+            break;
+        }
+
+        // КРИТИЧЕСКИ ВАЖНО ДЛЯ LINUX/V4L2
+        // создаём независимую копию кадра
+        frame = frame.clone();
 
         if (frame.empty()) {
             break;
         }
 
-        // СНАЧАЛА отправляем нормальный кадр
-        // в нейронку
+        // СНАЧАЛА отправляем чистый кадр в нейронку
 
         if (faceMode) {
             detector.updateFrame(frame);
@@ -64,7 +77,7 @@ int main() {
             keyProc.getCurrentMode()
         );
 
-        // Рисуем рамки
+        // Рисуем найденные лица
 
         if (faceMode) {
 

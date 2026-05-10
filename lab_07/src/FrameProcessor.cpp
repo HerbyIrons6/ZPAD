@@ -1,4 +1,5 @@
 // FrameProcessor.cpp
+
 #include "FrameProcessor.hpp"
 
 FrameProcessor::FrameProcessor()
@@ -6,13 +7,17 @@ FrameProcessor::FrameProcessor()
       startTick(cv::getTickCount()),
       fps(0) {}
 
-void FrameProcessor::process(cv::Mat& frame,
-                             ProcessMode mode) {
+void FrameProcessor::process(
+    cv::Mat& frame,
+    ProcessMode mode
+) {
 
     switch (mode) {
 
         case ProcessMode::INVERT:
+
             cv::bitwise_not(frame, frame);
+
             break;
 
         case ProcessMode::BLUR: {
@@ -40,7 +45,12 @@ void FrameProcessor::process(cv::Mat& frame,
                 cv::COLOR_BGR2GRAY
             );
 
-            cv::Canny(frame, frame, 50, 150);
+            cv::Canny(
+                frame,
+                frame,
+                50,
+                150
+            );
 
             cv::cvtColor(
                 frame,
@@ -63,7 +73,9 @@ void FrameProcessor::process(cv::Mat& frame,
     drawOverlay(frame);
 }
 
-void FrameProcessor::applyGlitch(cv::Mat& frame) {
+void FrameProcessor::applyGlitch(
+    cv::Mat& frame
+) {
 
     std::vector<cv::Mat> channels;
 
@@ -71,10 +83,11 @@ void FrameProcessor::applyGlitch(cv::Mat& frame) {
 
     int offset = 15;
 
-    cv::Mat shifted = cv::Mat::zeros(
-        channels[2].size(),
-        channels[2].type()
-    );
+    cv::Mat shifted =
+        cv::Mat::zeros(
+            channels[2].size(),
+            channels[2].type()
+        );
 
     channels[2](
         cv::Rect(
@@ -99,12 +112,16 @@ void FrameProcessor::applyGlitch(cv::Mat& frame) {
     cv::merge(channels, frame);
 }
 
-void FrameProcessor::drawOverlay(cv::Mat& frame) {
+void FrameProcessor::drawOverlay(
+    cv::Mat& frame
+) {
 
-    int64 currentTick = cv::getTickCount();
+    int64 currentTick =
+        cv::getTickCount();
 
-    fps = cv::getTickFrequency()
-          / (currentTick - startTick);
+    fps =
+        cv::getTickFrequency()
+        / (currentTick - startTick);
 
     startTick = currentTick;
 

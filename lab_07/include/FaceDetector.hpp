@@ -1,7 +1,10 @@
+// FaceDetector.hpp
+
 #pragma once
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/dnn.hpp>
+
 #include <thread>
 #include <mutex>
 #include <atomic>
@@ -9,6 +12,7 @@
 
 class FaceDetector {
 public:
+
     FaceDetector(const std::string& prototxt,
                  const std::string& model);
 
@@ -19,6 +23,7 @@ public:
     std::vector<cv::Rect> getFaces();
 
 private:
+
     void detectionLoop();
 
     cv::dnn::Net net;

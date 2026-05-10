@@ -1,9 +1,14 @@
 // FaceDetector.cpp
+
 #include "FaceDetector.hpp"
 
 FaceDetector::FaceDetector(const std::string& prototxt,
                            const std::string& model) {
-    net = cv::dnn::readNetFromCaffe(prototxt, model);
+
+    net = cv::dnn::readNetFromCaffe(
+        prototxt,
+        model
+    );
 
     isRunning = true;
 
@@ -14,6 +19,7 @@ FaceDetector::FaceDetector(const std::string& prototxt,
 }
 
 FaceDetector::~FaceDetector() {
+
     isRunning = false;
 
     if (workerThread.joinable()) {
@@ -22,6 +28,7 @@ FaceDetector::~FaceDetector() {
 }
 
 void FaceDetector::updateFrame(const cv::Mat& frame) {
+
     std::lock_guard<std::mutex> lock(mtx);
 
     frame.copyTo(currentFrame);
@@ -30,12 +37,14 @@ void FaceDetector::updateFrame(const cv::Mat& frame) {
 }
 
 std::vector<cv::Rect> FaceDetector::getFaces() {
+
     std::lock_guard<std::mutex> lock(mtx);
 
     return detectedFaces;
 }
 
 void FaceDetector::detectionLoop() {
+
     while (isRunning) {
 
         cv::Mat frameToProcess;
@@ -43,7 +52,9 @@ void FaceDetector::detectionLoop() {
         {
             std::lock_guard<std::mutex> lock(mtx);
 
-            if (!hasNewFrame || currentFrame.empty()) {
+            if (!hasNewFrame ||
+                currentFrame.empty()) {
+
                 std::this_thread::sleep_for(
                     std::chrono::milliseconds(1)
                 );
@@ -56,12 +67,13 @@ void FaceDetector::detectionLoop() {
             hasNewFrame = false;
         }
 
-        cv::Mat blob = cv::dnn::blobFromImage(
-            frameToProcess,
-            1.0,
-            cv::Size(300, 300),
-            cv::Scalar(104, 177, 123)
-        );
+        cv::Mat blob =
+            cv::dnn::blobFromImage(
+                frameToProcess,
+                1.0,
+                cv::Size(300, 300),
+                cv::Scalar(104, 177, 123)
+            );
 
         net.setInput(blob);
 
@@ -76,7 +88,9 @@ void FaceDetector::detectionLoop() {
 
         std::vector<cv::Rect> faces;
 
-        for (int i = 0; i < detectionMat.rows; i++) {
+        for (int i = 0;
+             i < detectionMat.rows;
+             i++) {
 
             float confidence =
                 detectionMat.at<float>(i, 2);
@@ -117,6 +131,8 @@ void FaceDetector::detectionLoop() {
 
             detectedFaces = faces;
         }
+
+        // Демонстрация многопоточности
 
         std::this_thread::sleep_for(
             std::chrono::milliseconds(500)
