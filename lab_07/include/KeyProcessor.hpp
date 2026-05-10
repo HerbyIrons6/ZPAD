@@ -1,20 +1,21 @@
+// KeyProcessor.hpp
 #ifndef KEY_PROCESSOR_HPP
 #define KEY_PROCESSOR_HPP
 
-// Перерахування режимів обробки кадру
 enum class ProcessMode {
-    NORMAL,    // Без фільтрів
-    INVERT,    // Інверсія кольорів
-    BLUR,      // Розмиття Гаусса
-    CANNY,     // Детектор меж Кенні
-    GLITCH     // Ефект зсуву каналів
+    NORMAL,
+    INVERT,
+    BLUR,
+    CANNY,
+    GLITCH
 };
 
 class KeyProcessor {
 public:
     KeyProcessor();
-    void handleKey(int key); // Обробка натискання клавіші
-    ProcessMode getCurrentMode() const; // Отримання поточного режиму
+    void handleKey(int key);
+    ProcessMode getCurrentMode() const;
+
 private:
     ProcessMode currentMode;
 };
