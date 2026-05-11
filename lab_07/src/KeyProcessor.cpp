@@ -1,10 +1,11 @@
 #include "KeyProcessor.hpp"
 
+// Конструктор: за замовчуванням встановлюємо чистий режим без фільтрів
 KeyProcessor::KeyProcessor()
     : currentMode(ProcessMode::NORMAL) {}
 
 void KeyProcessor::handleKey(int key) {
-
+    // Мапінг натиснутих клавіш (1-5) на відповідні стани програми
     switch (key) {
         case '1':
             currentMode = ProcessMode::NORMAL;
@@ -24,6 +25,7 @@ void KeyProcessor::handleKey(int key) {
     }
 }
 
+// Геттер для безпечного отримання поточного стану в головному циклі (main)
 ProcessMode KeyProcessor::getCurrentMode() const {
     return currentMode;
 }

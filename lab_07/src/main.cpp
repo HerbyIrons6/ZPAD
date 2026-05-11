@@ -1,5 +1,3 @@
-// main.cpp
-
 #include <opencv2/opencv.hpp>
 
 #include "KeyProcessor.hpp"
@@ -10,9 +8,12 @@
 
 int main() {
 
-    // Используем V4L2 вместо GStreamer
+    // Явно вказуємо бекенд V4L2 (Video for Linux)
+    // для стабільної роботи камери у віртуальній машині
     cv::VideoCapture cap(0, cv::CAP_V4L2);
 
+    // Зменшуємо буфер камери до 1 кадру,
+    // щоб мінімізувати затримку відео (input lag)
     cap.set(cv::CAP_PROP_BUFFERSIZE, 1);
 
     if (!cap.isOpened()) {
@@ -28,6 +29,7 @@ int main() {
 
     FrameProcessor frameProc;
 
+    // Ініціалізація нейромережі та запуск фонового потоку
     FaceDetector detector(
         "deploy.prototxt",
         "res10_300x300_ssd_iter_140000.caffemodel"
@@ -59,33 +61,31 @@ int main() {
             break;
         }
 
-        // ВАЖНО:
-        // создаём отдельную копию
-        // для второго потока
-
+        // Робимо чисту копію кадру для нейромережі.
+        // Це необхідно, щоб фільтри (наприклад, Blur або Invert)
+        // не спотворили дані і не зламали детекцію обличчя.
         cv::Mat cleanFrame = frame.clone();
 
-        // Передаём ТОЛЬКО cleanFrame
-
         if (faceMode) {
+            // Відправляємо оригінальний кадр у фоновий потік (асинхронно)
             detector.updateFrame(cleanFrame);
         }
 
-        // Все эффекты применяем
-        // только к основному кадру
-
+        // Накладаємо візуальні ефекти на поточний кадр
+        // Це відбувається в основному потоці (UI Thread)
         frameProc.process(
             frame,
             keyProc.getCurrentMode()
         );
 
-        // Рисуем лица
-
         if (faceMode) {
 
+            // Отримуємо останні розраховані координати з фонового потоку.
+            // М'ютекс всередині гарантує потокобезпечне читання.
             std::vector<cv::Rect> faces =
                 detector.getFaces();
 
+            // Малюємо рамки поверх кадру (вже після накладання фільтрів)
             for (const auto& face : faces) {
 
                 cv::rectangle(
@@ -108,26 +108,23 @@ int main() {
         }
 
         cv::imshow(winName, frame);
-
+        
+        // Використовуємо 1мс замість 30мс, щоб головний
+        // потік (UI) працював на максимально можливому FPS.
+        // Важкі обчислення нас більше не блокують.
         int key = cv::waitKey(1);
 
         if (key == 27) {
-            break;
+            break; // ESC
         }
-
         if (key == 'f' || key == 'F') {
-
             faceMode = !faceMode;
-
         } else if (key != -1) {
-
             keyProc.handleKey(key);
         }
     }
 
     cap.release();
-
     cv::destroyAllWindows();
-
     return 0;
 }
