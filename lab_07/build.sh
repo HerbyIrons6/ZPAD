@@ -8,4 +8,4 @@ echo "Запуск CMake та Make..."
 cmake ..
 make
 
-echo "Збірка завершена. Файл знаходиться у build/Lab6"
+echo "Збірка завершена. Файл знаходиться у build/Lab7"
